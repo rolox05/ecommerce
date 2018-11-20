@@ -7,6 +7,7 @@ import { Payload } from "../token";
 import * as token from "../token";
 import * as error from "../server/error";
 import * as user from "../user";
+import { IUser, User } from "../user/user";
 
 /**
  * Modulo de seguridad, login/logout, cambio de contraseñas, etc
@@ -86,8 +87,14 @@ function changePassword(req: ISessionRequest, res: express.Response) {
  */
 async function signUp(req: express.Request, res: express.Response) {
   try {
-    const userId = await user.register(req.body);
+    const userData = await user.register(req.body);
+    const userId = userData._id.toHexString();
     const tokenString = await token.create(userId);
+
+    await rabbit.sendUserCreated(userData)
+    .catch((err) => {
+      console.error("user created " + err);
+    });
     res.json({ token: tokenString });
   } catch (err) {
     error.handle(res, err);
@@ -115,6 +122,10 @@ async function signUp(req: express.Request, res: express.Response) {
 async function login(req: express.Request, res: express.Response) {
   try {
     const userId = await user.login(req.body);
+    await rabbit.sendUserLogin(userId, "login")
+    .catch((err) => {
+        console.error("user login " + err);
+    });
     const tokenString = await token.create(userId);
     res.json({ token: tokenString });
   } catch (err) {
@@ -138,7 +149,7 @@ async function login(req: express.Request, res: express.Response) {
 async function logout(req: ISessionRequest, res: express.Response) {
   try {
     await token.invalidate(req.user);
-    rabbit.sendLogout(req.header("Authorization"))
+    await rabbit.sendLogout(req.header("Authorization"))
       .catch((err) => {
         console.error("signout " + err);
       });
@@ -172,6 +183,12 @@ async function grantPermissions(req: ISessionRequest, res: express.Response) {
   try {
     await user.hasPermission(req.user.user_id, "admin");
     await user.grant(req.params.userID, req.body.permissions);
+
+    await rabbit.sendUserEdit(req.user.user_id, req.params.userID, req.body.permissions, "grant")
+    .catch((err) => {
+        console.error("user grant " + err);
+    });
+
     res.send();
   } catch (err) {
     error.handle(res, err);
@@ -201,6 +218,11 @@ async function revokePermissions(req: ISessionRequest, res: express.Response) {
   try {
     await user.hasPermission(req.user.user_id, "admin");
     await user.revoke(req.params.userID, req.body.permissions);
+
+    await rabbit.sendUserEdit(req.user.user_id, req.params.userID, req.body.permissions, "revoke")
+    .catch((err) => {
+        console.error("user revoke " + err);
+    });
     res.send();
   } catch (err) {
     error.handle(res, err);
@@ -226,6 +248,11 @@ async function enableUser(req: ISessionRequest, res: express.Response) {
   try {
     await user.hasPermission(req.user.user_id, "admin");
     await user.enable(req.params.userID);
+
+    await rabbit.sendUserEdit(req.user.user_id, req.params.userID, [], "enable")
+    .catch((err) => {
+        console.error("user enable " + err);
+    });
     res.send();
   } catch (err) {
     error.handle(res, err);
@@ -250,6 +277,11 @@ async function disableUser(req: ISessionRequest, res: express.Response) {
   try {
     await user.hasPermission(req.user.user_id, "admin");
     await user.disable(req.params.userID);
+
+    await rabbit.sendUserEdit(req.user.user_id, req.params.userID, [], "disable")
+    .catch((err) => {
+        console.error("user disable " + err);
+    });
     res.send();
   } catch (err) {
     error.handle(res, err);

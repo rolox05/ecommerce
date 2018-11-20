@@ -35,6 +35,12 @@ public class ArticleData implements JsonSerializable {
 
     @SerializedName("stock")
     public int stock;
+    
+    @SerializedName("quantity")
+    public int quantity;
+
+    @SerializedName("orderId")
+    public String orderId;
 
     @SerializedName("enabled")
     public boolean enabled = true;

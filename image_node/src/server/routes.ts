@@ -6,6 +6,7 @@ import { Express } from "express";
 import * as image from "../image";
 import * as token from "../token";
 import * as error from "./error";
+import * as rabbit from "../rabbit/rabbit";
 
 export function init(app: Express) {
   app.route("/v1/image").post(validateToken, create);
@@ -66,7 +67,13 @@ function validateToken(req: IUserSessionRequest, res: express.Response, next: Ne
  */
 function create(req: IUserSessionRequest, res: express.Response, next: NextFunction) {
   image.create(req.body)
-    .then(id => res.json({ id: id }))
+    .then(id => {
+      rabbit.sendImageCreated(id)
+      .catch((err) => {
+        console.error("image created " + err);
+      });
+      return res.json({ id: id });
+    })
     .catch(err => error.handle(res, err));
 }
 

@@ -9,6 +9,7 @@ import events.EventService;
 import events.schema.Event;
 import events.schema.NewArticleValidationData;
 import events.schema.NewPlaceData;
+import events.schema.PaymentData;
 import events.schema.PlaceEvent;
 import events.schema.PlaceEvent.Article;
 import security.TokenService;
@@ -137,6 +138,37 @@ public class RabbitController {
                 event.getPlaceEvent().getCartId(), event.getPlaceEvent().getArticles());
 
         TopicPublisher.publish("sell_flow", "order_placed", eventToSend);
+    }
+
+    /**
+     *
+     * @api {topic} order/order-payment Pago agregado a Orden
+     *
+     * @apiGroup RabbitMQ POST
+     *
+     * @apiDescription Envía de mensajes order-payment desde Order con el topic "order_payment".
+     *
+     * @apiSuccessExample {json} Mensaje
+     *     {
+     *     "type": "order-payment",
+     *     "message" : {
+     *         "userId": "{userId}",
+     *         "orderId": "{orderId}",
+     *         "method": "{paymentMethod}",
+     *         "amount": "{amount}",
+     *        }
+     *     }
+     *
+     */
+    public static void sendPaymentAdded(PaymentData payment) {
+        RabbitEvent eventToSend = new RabbitEvent();
+        eventToSend.type = "order_payment";
+        eventToSend.exchange = "order";
+        eventToSend.queue = "order";
+
+        eventToSend.message = payment;
+
+        TopicPublisher.publish("sell_flow", "order_payment", eventToSend);
     }
 
     private static class OrderPlacedResponse {

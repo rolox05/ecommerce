@@ -8,6 +8,7 @@ import article.ArticleRepository;
 import article.vo.DescriptionData;
 import article.vo.NewData;
 import security.TokenService;
+import security.User;
 import spark.Request;
 import spark.Response;
 import utils.errors.ErrorHandler;
@@ -54,6 +55,9 @@ public class RestController {
 
             Article article = Article.newArticle(NewData.fromJson(req.body()));
             ArticleRepository.getInstance().save(article);
+
+            User user = TokenService.getUserFromToken(req.headers("Authorization"));
+            RabbitController.sendArticleCreated(article, user);
 
             return article.value().toJson();
         } catch (ValidationError | SimpleError e) {
@@ -106,6 +110,9 @@ public class RestController {
             article.updateStock(otherParams.stock);
 
             repository.save(article);
+
+            User user = TokenService.getUserFromToken(req.headers("Authorization"));
+            RabbitController.sendArticleUpdated(article, user);
 
             return article.value().toJson();
         } catch (ValidationError | SimpleError e) {
@@ -164,6 +171,9 @@ public class RestController {
             Article article = repository.get(req.params(":articleId"));
             article.disable();
             repository.save(article);
+
+            User user = TokenService.getUserFromToken(req.headers("Authorization"));
+            RabbitController.sendArticleDeleted(article, user);
 
             return "";
         } catch (ValidationError | SimpleError e) {

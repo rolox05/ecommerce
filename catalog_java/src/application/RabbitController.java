@@ -1,6 +1,8 @@
 package application;
 
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -8,6 +10,7 @@ import article.Article;
 import article.ArticleRepository;
 import article.vo.ArticleData;
 import security.TokenService;
+import security.User;
 import utils.errors.ValidationError;
 import utils.gson.Builder;
 import utils.gson.JsonSerializable;
@@ -18,6 +21,7 @@ import utils.rabbit.RabbitEvent;
 import utils.rabbit.TopicConsumer;
 import utils.validator.Required;
 import utils.validator.Validator;
+import utils.rabbit.TopicPublisher;
 
 public class RabbitController {
 
@@ -171,13 +175,18 @@ public class RabbitController {
                     data.referenceId = exist.orderId;
                     data.stock = article.stock;
                     data.valid = article.enabled;
+                    data.quantity = a.quantity;
 
+                    sendArticleBought(data);
                     sendArticleData(event, data);
                 } catch (ValidationError validation) {
                     EventArticleData data = new EventArticleData();
                     data.articleId = a.articleId;
                     data.referenceId = exist.orderId;
+                    data.quantity = a.quantity;
                     data.valid = false;
+
+                    sendArticleBought(data);
                     sendArticleData(event, data);
                 }
             });
@@ -243,6 +252,137 @@ public class RabbitController {
         DirectPublisher.publish(event.exchange, event.queue, eventToSend);
     }
 
+    public static void sendArticleBought(EventArticleData article) {
+        RabbitEvent eventToSend = new RabbitEvent();
+        eventToSend.type = "article-bought";
+        eventToSend.exchange = "catalog2";
+        eventToSend.queue = "catalog";
+
+        HashMap<String, String> rabbitMsg = new HashMap<String, String>();
+        rabbitMsg.put("articleId", article.articleId);
+        rabbitMsg.put("date", String.valueOf(new Date().toInstant().toEpochMilli()));
+        rabbitMsg.put("articleData", article.toJson());
+        rabbitMsg.put("quantity", String.valueOf(article.quantity));
+        rabbitMsg.put("orderId", String.valueOf(article.referenceId));
+
+        eventToSend.message = rabbitMsg;
+
+        TopicPublisher.publish("catalog2", "article-bought", eventToSend);
+    }
+
+    /**
+     *
+     * @api {topic} catalog/article-created Artículo Creado
+     *
+     * @apiGroup RabbitMQ
+     *
+     * @apiDescription Mensajes article-created desde Catalog con el topic "article-created".
+     *
+     * @apiSuccessExample {json} Mensaje
+     *     {
+     *     "type": "article-created",
+     *     "message" : {
+     *         "userId": string, 
+     *         "userName": string,
+     *         "articleId": "{articleId}",
+     *         “articleName”: “{articleName}”,
+     *         "date": "{timeStamp}",
+     *         "articleData": {
+     *                "name": String,
+     *                "description": String,
+     *                "price": Float,
+     *                "stock": Integer,
+     *                "enabled": Boolean
+     *          }
+     *        }
+     *     }
+     */
+    public static void sendArticleCreated(Article article, User user) {
+        sendArticleMessage(article, user, "article-created");
+    }
+    
+    /**
+     *
+     * @api {topic} catalog/article-edited Artículo Editado
+     *
+     * @apiGroup RabbitMQ
+     *
+     * @apiDescription Mensajes article-edited desde Catalog con el topic "article-edited".
+     *
+     * @apiSuccessExample {json} Mensaje
+     *     {
+     *     "type": "article-edited",
+     *     "message" : {
+     *         "userId": string, 
+     *         "userName": string,
+     *         "articleId": "{articleId}",
+     *         “articleName”: “{articleName}”,
+     *         "date": "{timeStamp}",
+     *         "articleData": {
+     *                "name": String,
+     *                "description": String,
+     *                "price": Float,
+     *                "stock": Integer,
+     *                "enabled": Boolean
+     *          }
+     *        }
+     *     }
+     */
+    public static void sendArticleUpdated(Article article, User user) {
+        sendArticleMessage(article, user, "article-edited");
+    }
+
+    /**
+     *
+     * @api {topic} catalog/article-deleted Artículo Borrado
+     *
+     * @apiGroup RabbitMQ
+     *
+     * @apiDescription Mensajes article-deleted desde Catalog con el topic "article-deleted".
+     *
+     * @apiSuccessExample {json} Mensaje
+     *     {
+     *     "type": "article-deleted",
+     *     "message" : {
+     *         "userId": string, 
+     *         "userName": string, 
+     *         "articleId": "{articleId}",
+     *         “articleName”: “{articleName}”,
+     *         "date": "{timeStamp}",
+     *         "articleData": {
+     *                "name": String,
+     *                "description": String,
+     *                "price": Float,
+     *                "stock": Integer,
+     *                "enabled": Boolean
+     *          }
+     *        }
+     */
+    public static void sendArticleDeleted(Article article, User user) {
+        sendArticleMessage(article, user, "article-deleted");
+    }
+
+    private static void sendArticleMessage(Article article, User user, String topic) {
+        RabbitEvent eventToSend = new RabbitEvent();
+        eventToSend.type = topic;
+        eventToSend.exchange = "catalog2";
+        eventToSend.queue = "catalog";
+
+        HashMap<String, String> rabbitMsg = new HashMap<String, String>();
+        rabbitMsg.put("userName", user.name);
+        rabbitMsg.put("userId", user.id);
+        rabbitMsg.put("articleId", article.value().id);
+        rabbitMsg.put("articleName", article.value().name);
+        rabbitMsg.put("date", String.valueOf(new Date().toInstant().toEpochMilli()));
+        rabbitMsg.put("articleData", article.value().toJson());
+        rabbitMsg.put("quantity", String.valueOf(article.value().quantity));
+        rabbitMsg.put("orderId", String.valueOf(article.value().orderId));
+
+        eventToSend.message = rabbitMsg;
+
+        TopicPublisher.publish("catalog2", topic, eventToSend);
+    }
+
     static class EventArticleData implements JsonSerializable {
         @Required
         @SerializedName("articleId")
@@ -256,6 +396,8 @@ public class RabbitController {
         public double price;
         @SerializedName("stock")
         public int stock;
+        @SerializedName("quantity")
+        private int quantity;
 
         public static EventArticleExist fromJson(String json) {
             return Builder.gson().fromJson(json, EventArticleExist.class);

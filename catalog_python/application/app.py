@@ -12,13 +12,10 @@ class MainApp:
     self.flask_app = flask.Flask(__name__, static_folder = '../public')
     CORS(self.flask_app, supports_credentials=True, automatic_options=True)
 
-    self._generate_api_doc()
     self._init_routes()
     self._init_rabbit()
     self._init_articles()
-
-  def _generate_api_doc(self):
-    os.system("apidoc -i ./ -o ./public")
+    self._init_api_doc()
 
   def _init_routes(self):
     # Servidor de archivos estáticos de apidoc
@@ -37,6 +34,9 @@ class MainApp:
 
   def _init_articles(self):
     articlesRoutes.init(self.flask_app)
+
+  def _init_api_doc(self):
+    os.system("apidoc -i ./ -o ./public")
 
   def get_flask_app(self):
     return self.flask_app

@@ -3,15 +3,15 @@
 
 Microservicio de Ordenes
 
+- [Art_culos](#art_culos)
+	- [Crear Artículo](#crear-artículo)
+	
 - [Ordenes](#ordenes)
 	- [Batch Payment Defined](#batch-payment-defined)
 	- [Batch Placed](#batch-placed)
 	- [Batch Validated](#batch-validated)
 	- [Buscar Orden](#buscar-orden)
 	- [Ordenes de Usuario](#ordenes-de-usuario)
-	
-- [Pagos](#pagos)
-	- [Agregar Pago](#agregar-pago)
 	
 - [RabbitMQ_GET](#rabbitmq_get)
 	- [Validar Artículos](#validar-artículos)
@@ -24,6 +24,75 @@ Microservicio de Ordenes
 	
 
 
+# <a name='art_culos'></a> Art_culos
+
+## <a name='crear-artículo'></a> Crear Artículo
+[Back to top](#top)
+
+
+
+	POST /v1/articles/
+
+
+
+### Examples
+
+Body
+
+```
+{
+    "orderId": "{orderId}",
+    "paymentMethod": "CASH | CREDIT | DEBIT",
+    "amount": "{amount}"
+}
+```
+Header Autorización
+
+```
+Authorization=bearer {token}
+```
+
+### Success Response
+
+Respuesta
+
+```
+HTTP/1.1 200 OK
+```
+
+
+### Error Response
+
+401 Unauthorized
+
+```
+HTTP/1.1 401 Unauthorized
+```
+400 Bad Request
+
+```
+HTTP/1.1 400 Bad Request
+{
+    "path" : "{Nombre de la propiedad}",
+    "message" : "{Motivo del error}"
+}
+```
+400 Bad Request
+
+```
+HTTP/1.1 400 Bad Request
+{
+    "error" : "{Motivo del error}"
+}
+```
+500 Server Error
+
+```
+HTTP/1.1 500 Server Error
+{
+    "error" : "{Motivo del error}"
+}
+```
 # <a name='ordenes'></a> Ordenes
 
 ## <a name='batch-payment-defined'></a> Batch Payment Defined
@@ -42,7 +111,6 @@ Header Autorización
 ```
 Authorization=bearer {token}
 ```
-
 
 ### Success Response
 
@@ -102,7 +170,6 @@ Header Autorización
 Authorization=bearer {token}
 ```
 
-
 ### Success Response
 
 Respuesta
@@ -161,7 +228,6 @@ Header Autorización
 Authorization=bearer {token}
 ```
 
-
 ### Success Response
 
 Respuesta
@@ -219,7 +285,6 @@ Header Autorización
 ```
 Authorization=bearer {token}
 ```
-
 
 ### Success Response
 
@@ -294,7 +359,6 @@ Header Autorización
 Authorization=bearer {token}
 ```
 
-
 ### Success Response
 
 Respuesta
@@ -311,75 +375,6 @@ HTTP/1.1 200 OK
    "articles": {count}
 }, ...
 ]
-```
-
-
-### Error Response
-
-401 Unauthorized
-
-```
-HTTP/1.1 401 Unauthorized
-```
-400 Bad Request
-
-```
-HTTP/1.1 400 Bad Request
-{
-    "path" : "{Nombre de la propiedad}",
-    "message" : "{Motivo del error}"
-}
-```
-400 Bad Request
-
-```
-HTTP/1.1 400 Bad Request
-{
-    "error" : "{Motivo del error}"
-}
-```
-500 Server Error
-
-```
-HTTP/1.1 500 Server Error
-{
-    "error" : "{Motivo del error}"
-}
-```
-# <a name='pagos'></a> Pagos
-
-## <a name='agregar-pago'></a> Agregar Pago
-[Back to top](#top)
-
-
-
-	POST /v1/orders/:orderId/payment
-
-
-
-### Examples
-
-Body
-
-```
-{
-    "paymentMethod": "CASH | CREDIT | DEBIT",
-    "amount": "{amount}"
-}
-```
-Header Autorización
-
-```
-Authorization=bearer {token}
-```
-
-
-### Success Response
-
-Respuesta
-
-```
-HTTP/1.1 200 OK
 ```
 
 
@@ -443,7 +438,6 @@ Mensaje
 
 
 
-
 ## <a name='crear-orden'></a> Crear Orden
 [Back to top](#top)
 
@@ -470,7 +464,6 @@ Mensaje
 
 
 
-
 ## <a name='logout'></a> Logout
 [Back to top](#top)
 
@@ -493,7 +486,6 @@ Mensaje
 
 
 
-
 # <a name='rabbitmq_post'></a> RabbitMQ_POST
 
 ## <a name='validación-de-artículos'></a> Validación de Artículos
@@ -502,7 +494,6 @@ Mensaje
 <p>Antes de iniciar las operaciones se validan los artículos contra el catalogo.</p>
 
 	DIRECT cart/article-data
-
 
 
 
@@ -528,7 +519,6 @@ Mensaje
 <p>Envía de mensajes order-placed desde Order con el topic &quot;order_placed&quot;.</p>
 
 	TOPIC order/order-placed
-
 
 
 

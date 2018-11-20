@@ -8,6 +8,9 @@ Microservicio de Imágenes
 	- [Obtener Imagen](#obtener-imagen)
 	- [Obtener Imagen Jpeg](#obtener-imagen-jpeg)
 	
+- [RabbitMQ](#rabbitmq)
+	- [Imagen Creada](#imagen-creada)
+	
 - [RabbitMQ_GET](#rabbitmq_get)
 	- [Logout de Usuarios](#logout-de-usuarios)
 	
@@ -203,6 +206,34 @@ HTTP/1.1 500 Internal Server Error
    "error" : "Not Found"
 }
 ```
+# <a name='rabbitmq'></a> RabbitMQ
+
+## <a name='imagen-creada'></a> Imagen Creada
+[Back to top](#top)
+
+<p>Mensajes image-created desde Imagen con el topic &quot;image-created&quot;.</p>
+
+	TOPIC imagen/image-created
+
+
+
+
+### Success Response
+
+Mensaje
+
+```
+{
+"type": "image-created",
+"message" : {
+    "imagenid": "{imagenId}",
+    “action”: “{action}”,
+    "date": "{timeStamp}"
+   }
+}
+```
+
+
 # <a name='rabbitmq_get'></a> RabbitMQ_GET
 
 ## <a name='logout-de-usuarios'></a> Logout de Usuarios

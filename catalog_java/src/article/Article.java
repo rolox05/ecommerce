@@ -24,6 +24,8 @@ public class Article {
 
     private double price;
     private int stock;
+    private int quantity;
+    private String orderId;
 
     @SuppressWarnings("unused")
     private Date updated = new Date();
@@ -119,6 +121,8 @@ public class Article {
         data.stock = this.stock;
 
         data.enabled = this.enabled;
+        data.quantity = this.quantity;
+        data.orderId = this.orderId;
         return data;
     }
 

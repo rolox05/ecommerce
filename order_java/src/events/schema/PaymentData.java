@@ -9,6 +9,8 @@ import utils.validator.Required;
 
 public class PaymentData {
     @SerializedName("orderId")
+    @Required
+    @MinLen(1)
     public String orderId;
 
     @SerializedName("userId")

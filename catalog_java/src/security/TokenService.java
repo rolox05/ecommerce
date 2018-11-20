@@ -58,6 +58,10 @@ public class TokenService {
         map.remove(token);
     }
 
+    public static User getUserFromToken(String token) {
+        return retrieveUser(token);
+    }
+
     private static User retrieveUser(String token) {
         HttpClient client = HttpClientBuilder.create().build();
         HttpGet request = new HttpGet(Environment.getEnv().securityServerUrl + "/v1/users/current");

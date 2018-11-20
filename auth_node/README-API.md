@@ -3,6 +3,11 @@
 
 Microservicio de Autentificación
 
+- [RabbitMQ](#rabbitmq)
+	- [Usuario Creado](#usuario-creado)
+	- [Usuario Editado](#usuario-editado)
+	- [Usuario Logueado](#usuario-logueado)
+	
 - [RabbitMQ_POST](#rabbitmq_post)
 	- [Invalidar Token](#invalidar-token)
 	
@@ -18,6 +23,98 @@ Microservicio de Autentificación
 	- [Revoca Permisos](#revoca-permisos)
 	- [Usuario Actual](#usuario-actual)
 	
+
+
+# <a name='rabbitmq'></a> RabbitMQ
+
+## <a name='usuario-creado'></a> Usuario Creado
+[Back to top](#top)
+
+<p>Envía mensajes user-created.</p>
+
+	TOPIC auth/user-created
+
+
+
+
+### Success Response
+
+Mensaje
+
+```
+{
+"type": "user-created",
+"message" : {
+    "userId": "{userId}",
+    "date": "{timeStamp}",
+    "userData": {
+        name: string,
+        login: string,
+        permissions: string[],
+        updated: Date,
+        created: Date,
+        enabled: Boolean
+       }
+   }
+}
+```
+
+
+## <a name='usuario-editado'></a> Usuario Editado
+[Back to top](#top)
+
+<p>Envía mensaje user-edit desde Auth con el topic &quot;user-edit&quot;.</p>
+
+	TOPIC auth/user-edit
+
+
+
+
+### Success Response
+
+Mensaje
+
+```
+{
+"type": "user-edit",
+"message" : {
+    "userId": "{userId}",
+    "date": "{timeStamp}",
+    "userData": {
+          "editor": editor,
+          "target": target,
+          "changes": changes, (roles added/removed)
+          "action": action (grant, revoke, enable, disable)
+      }
+   }
+}
+```
+
+
+## <a name='usuario-logueado'></a> Usuario Logueado
+[Back to top](#top)
+
+<p>Mensajes user-login desde Auth con el topic &quot;user-login&quot;.</p>
+
+	TOPIC auth/user-login
+
+
+
+
+### Success Response
+
+Mensaje
+
+```
+{
+"type": "user-login",
+"message" : {
+    "userId": "{userId}",
+    "date": "{timeStamp}",
+    “action”: “{string}”
+   }
+}
+```
 
 
 # <a name='rabbitmq_post'></a> RabbitMQ_POST

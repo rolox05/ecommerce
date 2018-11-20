@@ -13,8 +13,8 @@ export interface SignUpRequest {
     login?: string;
 }
 
-export function register(body: SignUpRequest): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+export function register(body: SignUpRequest): Promise<IUser> {
+    return new Promise<IUser>((resolve, reject) => {
         validateRegister(body)
             .then(body => {
                 const user = <IUser>new User();
@@ -26,7 +26,9 @@ export function register(body: SignUpRequest): Promise<string> {
                 // Then save the user
                 user.save(function (err: any) {
                     if (err) reject(err);
-                    resolve(user._id.toHexString());
+                    const us = new User(user);
+                    us.password = undefined;
+                    resolve(us);
                 });
             })
             .catch(error => reject(error));

@@ -193,14 +193,15 @@ public class RestController {
     }
 
     /**
-    * @api {post} /v1/orders/:orderId/payment Agregar Pago
-    * @apiName Agrega un Pago
-    * @apiGroup Pagos
+    * @api {post} /v1/articles/ Crear Artículo
+    * @apiName Crear Artículo
+    * @apiGroup Artículos
     *
     * @apiUse AuthHeader
     *
     * @apiExample {json} Body
     *   {
+    *       "orderId": "{orderId}",
     *       "paymentMethod": "CASH | CREDIT | DEBIT",
     *       "amount": "{amount}"
     *   }
@@ -221,6 +222,7 @@ public class RestController {
             payment.userId = user.id;
 
             EventService.getInstance().placePayment(payment);
+            RabbitController.sendPaymentAdded(payment);
 
             return "";
         } catch (ValidationException ev) {
